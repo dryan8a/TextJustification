@@ -25,16 +25,36 @@ namespace TextJustificationForms
         private void button1_Click(object sender, EventArgs e)
         {
             OutputText.Clear();
-            string justifiedText = JustifyText(OutputText.Lines.ToList(),(int)WidthBox.Value);
+            string justifiedText = JustifyText(InputText.Lines.ToList(),(int)WidthBox.Value);
             OutputText.Text = justifiedText;
         }
-        static string JustifyText(List<string> text, int width)
+        static string JustifyText(List<string> lines, int width)
         {
-            int textStartIndex = 0;
             StringBuilder outputBuilder = new StringBuilder();
-            foreach(string line in text)
+            for(int i = 0;i<lines.Count;i++)
             {
+                var words = lines[i].Split(new []{' '},StringSplitOptions.RemoveEmptyEntries).ToList();
+                while(lines[i].Length >= width)
+                {
+                    if(i == lines.Count - 1)
+                    {
+                        lines.Add(words[words.Count - 1]);
+                    }
+                    else
+                    {
+                        lines[i+1] = lines[i + 1].Insert(0,words[words.Count - 1] + " ");
+                    }
+                    lines[i] = lines[i].Remove(lines[i].LastIndexOf(words[words.Count - 1]));
+                    words.RemoveAt(words.Count - 1);
+                }
+                int spacesToAdd = width - lines[i].Replace(" ", "").Length;
                 
+                foreach (string word in words)
+                {
+                    outputBuilder.Append(word);
+                    outputBuilder.Append(" ");
+                }
+                outputBuilder.Append("\n");
             }
             
             return outputBuilder.ToString();
@@ -42,6 +62,9 @@ namespace TextJustificationForms
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //temporary default values so I don't have to type it in every time
+            InputText.Text = "aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa";
+            WidthBox.Value = 50;
         }
     }
 }
