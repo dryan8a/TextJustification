@@ -12,6 +12,7 @@ namespace TextJustificationForms
 {
     public partial class Form1 : Form
     {
+        const int maxLastLineSpacePad = 2;
         public Form1()
         {
             InitializeComponent();
@@ -31,30 +32,32 @@ namespace TextJustificationForms
         static string JustifyText(List<string> lines, int width)
         {
             StringBuilder outputBuilder = new StringBuilder();
-            for(int i = 0;i<lines.Count;i++)
+            for(int lineIndex = 0;lineIndex<lines.Count;lineIndex++)
             {
-                var words = lines[i].Split(new []{' '},StringSplitOptions.RemoveEmptyEntries).ToList();
-                while(lines[i].Length >= width)
+                var words = lines[lineIndex].Split(new []{' ','\n','\t'},StringSplitOptions.RemoveEmptyEntries).ToList();
+                while(lines[lineIndex].Length >= width)
                 {
-                    if(i == lines.Count - 1)
+                    if(lineIndex == lines.Count - 1)
                     {
                         lines.Add(words[words.Count - 1]);
                     }
                     else
                     {
-                        lines[i+1] = lines[i + 1].Insert(0,words[words.Count - 1] + " ");
+                        lines[lineIndex+1] = lines[lineIndex + 1].Insert(0,$"{words[words.Count - 1]} ");
                     }
-                    lines[i] = lines[i].Remove(lines[i].LastIndexOf(words[words.Count - 1]));
+                    lines[lineIndex] = lines[lineIndex].Remove(lines[lineIndex].LastIndexOf(words[words.Count - 1]));
                     words.RemoveAt(words.Count - 1);
                 }
-                int spacesToAdd = width - lines[i].Replace(" ", "").Length;
-                
-                foreach (string word in words)
+
+                int spacesToAdd = width - lines[lineIndex].Replace(" ", "").Length;
+                for (int wordIndex = 0; wordIndex < words.Count-1; wordIndex++)
                 {
-                    outputBuilder.Append(word);
-                    outputBuilder.Append(" ");
+                    int spacesAfterWord = (int)Math.Ceiling((double)spacesToAdd / (words.Count - wordIndex - 1));
+                    spacesAfterWord = spacesAfterWord > maxLastLineSpacePad && lineIndex == lines.Count-1 ? maxLastLineSpacePad : spacesAfterWord;
+                    outputBuilder.Append(words[wordIndex].PadRight(words[wordIndex].Length + spacesAfterWord));
+                    spacesToAdd -= spacesAfterWord;
                 }
-                outputBuilder.Append("\n");
+                outputBuilder.Append($"{words[words.Count - 1]}\n");
             }
             
             return outputBuilder.ToString();
@@ -63,8 +66,9 @@ namespace TextJustificationForms
         private void Form1_Load(object sender, EventArgs e)
         {
             //temporary default values so I don't have to type it in every time
-            InputText.Text = "aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa aa aaa aaa aaa aa aa aaa aa aa a aa a aa aa aa a aaaaaaa aaaa aa aaa aaa aaa aa aaa aa a aa";
+            InputText.Text = "I felt as if it was necessary to write actual sentences to test the justification, as filling the input text with various amounts of 'a' did not seem like the best way to test that.\nThis way I can also see that the code isn't purging parts of the input.";
             WidthBox.Value = 50;
+            OutputText.Font = new Font("consolas", OutputText.Font.Size);
         }
     }
 }
