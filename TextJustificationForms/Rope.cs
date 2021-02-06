@@ -8,10 +8,11 @@ namespace TextJustificationForms
 {
     public class Rope
     {
-        class Node
+        internal class Node
         {
             public Node LeftChild;
             public Node RightChild;
+            public Node Parent;
             public string StrFrag;
             public int Weight;
             public bool IsLeafNode { get; internal set; }
@@ -41,6 +42,11 @@ namespace TextJustificationForms
             Head = new Node(headWeight, false); 
         }
 
+        internal Rope(Node head)
+        {
+            Head = head;
+        }
+
         public char this[int index]
         {
             get
@@ -49,7 +55,7 @@ namespace TextJustificationForms
             }
         }
 
-        private char Index(Node node, int index)
+        private static char Index(Node node, int index)
         {
             if(node.Weight <= index && node.RightChild != null)
             {
@@ -62,6 +68,21 @@ namespace TextJustificationForms
             }
 
             return node.StrFrag[index];
+        }
+
+        private static Node Query(Node node,int index)
+        {
+            if (node.Weight <= index && node.RightChild != null)
+            {
+                return Query(node.RightChild, index - node.Weight);
+            }
+
+            if (node.LeftChild != null)
+            {
+                return Query(node.LeftChild, index);
+            }
+
+            return node;
         }
 
         //public string Report(int startIndex, int endIndex)
@@ -132,13 +153,16 @@ namespace TextJustificationForms
             }
             Rope concatedRope = new Rope(weight);
             concatedRope.Head.LeftChild = left.Head;
+            left.Head.Parent = concatedRope.Head;
             concatedRope.Head.RightChild = right.Head;
+            right.Head.Parent = concatedRope.Head;
             return concatedRope;
         }
 
-        private (Node,Node) Split(Node node, int position)
-        {
-            throw new NotImplementedException();
-        }
+        //private static (Rope,Rope) Split(Node node, int position)
+        //{
+        //    var splitNode = Query(node, position);
+        //    splitNode.
+        //}
     }
 }
