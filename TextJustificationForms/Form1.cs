@@ -29,11 +29,7 @@ namespace TextJustificationForms
             string justifiedText = JustifyText(InputText.Text,(int)WidthBox.Value);
             OutputText.Text = justifiedText;
         }
-        private void button2_Click(object sender, EventArgs e)
-        {
-            OutputText.Clear();
 
-        }
         static string JustifyText(string text, int width)
         {
             StringBuilder outputBuilder = new StringBuilder();
@@ -70,7 +66,7 @@ namespace TextJustificationForms
                 for (int wordIndex = 0; wordIndex < words.Count-1; wordIndex++)
                 {
                     int spacesAfterWord = (int)Math.Ceiling((double)spacesToAdd / (words.Count - wordIndex - 1)); //how many spaces needed after the current word
-                    spacesAfterWord = spacesAfterWord > maxLastLineSpacePad && lineIndex == lines.Count-1 ? maxLastLineSpacePad : spacesAfterWord; //removes gross over-spacing on the last line
+                    spacesAfterWord = spacesAfterWord > maxLastLineSpacePad && (lineIndex == lines.Count-1 || lines[lineIndex+1][0] == '\n')? maxLastLineSpacePad : spacesAfterWord; //removes gross over-spacing on the last line before a new line
                     outputBuilder.Append(words[wordIndex].PadRight(words[wordIndex].Length + spacesAfterWord)); //adds spaces after word and appends to string builder
                     spacesToAdd -= spacesAfterWord;
                 }
