@@ -70,7 +70,7 @@ namespace TextJustificationForms
             return node.StrFrag[index];
         }
 
-        private static Node Query(Node node,int index)
+        private static (Node node, int indexInNode) Query(Node node,int index)
         {
             if (node.Weight <= index && node.RightChild != null)
             {
@@ -82,7 +82,7 @@ namespace TextJustificationForms
                 return Query(node.LeftChild, index);
             }
 
-            return node;
+            return (node,index);
         }
 
         //public string Report(int startIndex, int endIndex)
@@ -124,34 +124,46 @@ namespace TextJustificationForms
 
         public void Insert(string stringToInsert,int position)
         {
-            throw new NotImplementedException();  
+            //Split(this, position);
         }
 
         public void Append(string stringToInsert)
         {
-            Insert(stringToInsert, Head.Weight);
+            Head = Concat(this, new Rope(new Node(stringToInsert.Length, true))).Head;
         }
 
-        private static void InorderTraversal(Node startNode, List<Node> nodes)
-        {
-            if (startNode == null) return;
+        //private static void InorderTraversal(Node startNode, List<Node> outputNodes)
+        //{
+        //    if (startNode == null) return;
 
-            InorderTraversal(startNode.LeftChild, nodes);
-            nodes.Add(startNode);
-            InorderTraversal(startNode.RightChild, nodes);
+        //    InorderTraversal(startNode.LeftChild, outputNodes);
+        //    outputNodes.Add(startNode);
+        //    InorderTraversal(startNode.RightChild, outputNodes);
+        //}
+
+        private static int GetTotalWeight(Node node)
+        {
+            if(node.LeftChild == null && node.RightChild == null)
+            {
+                return node.Weight;
+            }
+
+            int currentWeight = 0;
+            if(node.LeftChild != null)
+            {
+                currentWeight += GetTotalWeight(node.LeftChild);
+            }
+            if(node.RightChild != null)
+            {
+                currentWeight += GetTotalWeight(node.RightChild);
+            }
+
+            return currentWeight;
         }
 
         private static Rope Concat(Rope left,Rope right)
         {
-            var inorderNodes = new List<Node>();
-            InorderTraversal(left.Head,inorderNodes);
-            int weight = 0;
-            foreach(var node in inorderNodes)
-            {
-                if (!node.IsLeafNode) continue;
-                weight += node.StrFrag.Length;
-            }
-            Rope concatedRope = new Rope(weight);
+            Rope concatedRope = new Rope(GetTotalWeight(left.Head));
             concatedRope.Head.LeftChild = left.Head;
             left.Head.Parent = concatedRope.Head;
             concatedRope.Head.RightChild = right.Head;
@@ -159,10 +171,42 @@ namespace TextJustificationForms
             return concatedRope;
         }
 
-        //private static (Rope,Rope) Split(Node node, int position)
-        //{
-        //    var splitNode = Query(node, position);
-        //    splitNode.
-        //}
+        private static (Rope, Rope) Split(Rope rope, int position)
+        {
+            (Node node,int indexInNode) = Query(rope.Head, position);
+
+            Rope newSplitRope = null;
+            if (indexInNode != 0) //splits the split node if the split includes only part of the node's string
+            {
+                string left = node.StrFrag.Substring(0, indexInNode + 1);
+                string right = node.StrFrag.Substring(indexInNode + 1);
+                node.LeftChild = new Node(left.Length,left);
+                node.LeftChild.Parent = node;
+                node.StrFrag = "";
+                node.Weight = left.Length;
+                node.IsLeafNode = false;
+
+                newSplitRope = new Rope(new Node(right.Length, right));
+            }
+            else
+            {
+                newSplitRope = new Rope(new Node(node.Weight, node.StrFrag));
+            }
+
+            var previousNode = node;
+            node = node.Parent;
+            while (node != null)
+            {
+                if(node.RightChild != previousNode)
+                {
+                    newSplitRope = Concat(newSplitRope, new Rope(node.RightChild));
+                    node.RightChild = null;
+                }
+                previousNode = node;
+                node = node.Parent;
+            }
+
+            return (rope, newSplitRope);
+        }
     }
 }
