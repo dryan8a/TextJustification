@@ -34,15 +34,15 @@ namespace TextJustificationForms
         
         public Rope()
         {
-            Head = new Node(0,false);
+            
         }
 
-        internal Rope(int headWeight)
+        private Rope(int headWeight)
         {
             Head = new Node(headWeight, false); 
         }
 
-        internal Rope(Node head)
+        private Rope(Node head)
         {
             Head = head;
         }
@@ -85,51 +85,26 @@ namespace TextJustificationForms
             return (node,index);
         }
 
-        //public string Report(int startIndex, int endIndex)
-        //{
-        //    Node currentNode = Head;
-        //    int currentIndex = startIndex;
-        //    while(true)
-        //    {
-        //        if (currentNode.Weight >= endIndex && currentNode.Weight <= currentIndex && currentNode.RightChild != null)
-        //        {
-        //            currentNode = currentNode.RightChild;
-        //            startIndex -= currentNode.Weight;
-        //            continue;
-        //        }
-
-        //        if (currentNode.Weight >= endIndex && currentNode.LeftChild != null)
-        //        {
-        //            currentNode = currentNode.LeftChild;
-        //            continue;
-        //        }
-        //        break;
-        //    }
-
-        //    Stack<Node> stack = new Stack<Node>();
-        //    while(currentNode != null || stack.Count > 0)
-        //    {
-        //        while(currentNode != null)
-        //        {
-        //            stack.Push(currentNode);
-        //            currentNode = currentNode.LeftChild;
-        //        }
-
-        //        currentNode = stack.Pop();
-        //        if(currentNode.StrFrag != null )
-
-        //        currentNode = currentNode.RightChild;
-        //    }
-        //}
-
         public void Insert(string stringToInsert,int position)
         {
-            //Split(this, position);
+            if(Head == null)
+            {
+                Head = new Node(stringToInsert.Length, stringToInsert);
+                return;
+            }
+            (Rope left, Rope right) = Split(this, position);
+            var leftConcat = Concat(left,new Rope(new Node(stringToInsert.Length,stringToInsert)));
+            Head = Concat(leftConcat, right).Head;
         }
 
         public void Append(string stringToInsert)
         {
-            Head = Concat(this, new Rope(new Node(stringToInsert.Length, true))).Head;
+            if(Head == null)
+            {
+                Head = new Node(stringToInsert.Length, stringToInsert);
+                return;
+            }
+            Head = Concat(this, new Rope(new Node(stringToInsert.Length, stringToInsert))).Head;
         }
 
         //private static void InorderTraversal(Node startNode, List<Node> outputNodes)
@@ -143,6 +118,10 @@ namespace TextJustificationForms
 
         private static int GetTotalWeight(Node node)
         {
+            if(node == null)
+            {
+                return 0;
+            }
             if(node.LeftChild == null && node.RightChild == null)
             {
                 return node.Weight;
@@ -163,6 +142,15 @@ namespace TextJustificationForms
 
         private static Rope Concat(Rope left,Rope right)
         {
+            if(left == null || left.Head == null)
+            {
+                return right;
+            }
+            if(right == null || right.Head == null)
+            {
+                return left;
+            }
+
             Rope concatedRope = new Rope(GetTotalWeight(left.Head));
             concatedRope.Head.LeftChild = left.Head;
             left.Head.Parent = concatedRope.Head;
@@ -174,7 +162,7 @@ namespace TextJustificationForms
         private static (Rope, Rope) Split(Rope rope, int position)
         {
             (Node node,int indexInNode) = Query(rope.Head, position);
-
+    
             Rope newSplitRope = null;
             if (indexInNode != 0) //splits the split node if the split includes only part of the node's string
             {
@@ -191,9 +179,14 @@ namespace TextJustificationForms
             else
             {
                 newSplitRope = new Rope(new Node(node.Weight, node.StrFrag));
+
+                if(node == node.Parent.LeftChild)
+                {
+                    node.Parent.LeftChild = null;
+                }
             }
 
-            var previousNode = node;
+            Node previousNode = node;
             node = node.Parent;
             while (node != null)
             {
@@ -202,8 +195,28 @@ namespace TextJustificationForms
                     newSplitRope = Concat(newSplitRope, new Rope(node.RightChild));
                     node.RightChild = null;
                 }
+
+                if(node.LeftChild == null && node.RightChild == null && !node.IsLeafNode && node.Parent != null) //removes empty nodes
+                {
+                    if(node == node.Parent.LeftChild)
+                    {
+                        node.Parent.LeftChild = null;
+                    }
+                    else
+                    {
+                        node.Parent.RightChild = null;
+                    }
+                }
+
+                //remove useless parent nodes and replace them with their child
+
                 previousNode = node;
                 node = node.Parent;
+            }
+
+            if(rope.Head.LeftChild == null && rope.Head.RightChild == null && !rope.Head.IsLeafNode)
+            {
+                rope.Head = null;
             }
 
             return (rope, newSplitRope);
