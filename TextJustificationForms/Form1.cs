@@ -37,7 +37,5 @@ namespace TextJustificationForms
             WidthBox.Value = 50;
             OutputText.Font = new Font("consolas", OutputText.Font.Size);
         }
-
-       
     }
 }

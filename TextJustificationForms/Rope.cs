@@ -85,6 +85,49 @@ namespace TextJustificationForms
             return (node,index);
         }
 
+        public string Report(int startIndex, int length)
+        {
+            (Node startNode, int index) = Query(Head, startIndex);
+            StringBuilder output = new StringBuilder(startNode.StrFrag.Substring(index));
+
+            var nodeStack = new Stack<Node>();
+            var currentNode = Head;
+            bool didBeginReporting = false;
+            while(currentNode != null || nodeStack.Count != 0)
+            {
+                while(currentNode != null)
+                {
+                    nodeStack.Push(currentNode);
+                    currentNode = currentNode.LeftChild;
+                }
+
+                currentNode = nodeStack.Pop();
+
+                if(didBeginReporting && currentNode.IsLeafNode)
+                {
+                    if(currentNode.StrFrag.Length > length - output.Length)
+                    {
+                        output.Append(currentNode.StrFrag.Substring(0, length - output.Length));
+                    }
+                    else
+                    {
+                        output.Append(currentNode.StrFrag);
+                    }
+                }
+
+                if (output.Length == length) break;
+
+                if(currentNode == startNode)
+                {
+                    didBeginReporting = true;
+                }
+
+                currentNode = currentNode.RightChild;
+            }
+
+            return output.ToString();
+        }
+
         public void Insert(string stringToInsert,int position)
         {
             if(Head == null)
@@ -107,15 +150,11 @@ namespace TextJustificationForms
             Head = Concat(this, new Rope(new Node(stringToInsert.Length, stringToInsert))).Head;
         }
 
-        //private static void InorderTraversal(Node startNode, List<Node> outputNodes)
-        //{
-        //    if (startNode == null) return;
-
-        //    InorderTraversal(startNode.LeftChild, outputNodes);
-        //    outputNodes.Add(startNode);
-        //    InorderTraversal(startNode.RightChild, outputNodes);
-        //}
-
+        /// <summary>
+        /// Gets the total combined weight of the leaves in a subtree (the length of the string that the tree holds)
+        /// </summary>
+        /// <param name="node">The node to recurse from</param>
+        /// <returns></returns>
         private static int GetTotalWeight(Node node)
         {
             if(node == null)
@@ -188,38 +227,69 @@ namespace TextJustificationForms
 
             Node previousNode = node;
             node = node.Parent;
-            while (node != null)
+            while (node != null) //recurses up the tree finding all nodes that are further right than the original node
             {
-                if(node.RightChild != previousNode)
+                if(node.RightChild != previousNode) //adds the node's right child to the new rope assuming that it didn't just recurse from the right child
                 {
                     newSplitRope = Concat(newSplitRope, new Rope(node.RightChild));
                     node.RightChild = null;
                 }
 
-                if(node.LeftChild == null && node.RightChild == null && !node.IsLeafNode && node.Parent != null) //removes empty nodes
+                if (node.LeftChild == null ^ node.RightChild == null) //removes unnecessary parent nodes (ones that only contain one subtree)
                 {
-                    if(node == node.Parent.LeftChild)
+                    if(node.Parent != null)
                     {
-                        node.Parent.LeftChild = null;
+                        ChangeBasedOnSide(node, node.LeftChild != null ? node.LeftChild : node.RightChild);
+                        if (node.LeftChild != null)
+                        {
+                            node = node.LeftChild;
+                        }
+                        else
+                        {
+                            node = node.RightChild;
+                        }
                     }
                     else
                     {
-                        node.Parent.RightChild = null;
+                        rope.Head = node.LeftChild != null ? node.LeftChild : node.RightChild;
                     }
                 }
 
-                //remove useless parent nodes and replace them with their child
+                if (node.LeftChild == null && node.RightChild == null && !node.IsLeafNode) //removes empty nodes that both have no children and is not considered a leaf node (meaning it has no string value)
+                {
+                    if(node.Parent != null)
+                    {
+                        ChangeBasedOnSide(node, null);
+                    }
+                    else
+                    {
+                        rope.Head = null;
+                    }
+
+                }
 
                 previousNode = node;
                 node = node.Parent;
             }
 
-            if(rope.Head.LeftChild == null && rope.Head.RightChild == null && !rope.Head.IsLeafNode)
-            {
-                rope.Head = null;
-            }
-
             return (rope, newSplitRope);
+        }
+
+        /// <summary>
+        /// Changes the parents connection to a given node based on whether the node is the left child or right child of its parent
+        /// </summary>
+        /// <param name="nodeToChange">The node whose parent's connection will change</param>
+        /// <param name="value">The value to swap in place of the node</param>
+        private static void ChangeBasedOnSide(Node nodeToChange, Node value)
+        {
+            if(nodeToChange == nodeToChange.Parent.LeftChild)
+            {
+                nodeToChange.Parent.LeftChild = value;
+            }
+            else
+            {
+                nodeToChange.Parent.RightChild = value;
+            }
         }
     }
 }
