@@ -85,6 +85,43 @@ namespace TextJustificationForms
             return (node,index);
         }
 
+        /// <summary>
+        /// Gets the whole string stored in the Rope
+        /// </summary>
+        /// <returns></returns>
+        public string ReportAll()
+        {
+            StringBuilder output = new StringBuilder();
+
+            var nodeStack = new Stack<Node>();
+            var currentNode = Head;
+            while (currentNode != null || nodeStack.Count != 0)
+            {
+                while (currentNode != null)
+                {
+                    nodeStack.Push(currentNode);
+                    currentNode = currentNode.LeftChild;
+                }
+
+                currentNode = nodeStack.Pop();
+
+                if (currentNode.IsLeafNode)
+                {
+                    output.Append(currentNode.StrFrag);
+                }
+
+                currentNode = currentNode.RightChild;
+            }
+
+            return output.ToString();
+        }
+
+        /// <summary>
+        /// Gets a substring from the Rope
+        /// </summary>
+        /// <param name="startIndex">The starting index of the substring in the Rope</param>
+        /// <param name="length">The length of the substring</param>
+        /// <returns></returns>
         public string Report(int startIndex, int length)
         {
             (Node startNode, int index) = Query(Head, startIndex);
@@ -93,7 +130,7 @@ namespace TextJustificationForms
             var nodeStack = new Stack<Node>();
             var currentNode = Head;
             bool didBeginReporting = false;
-            while(currentNode != null || nodeStack.Count != 0)
+            while(currentNode != null || nodeStack.Count != 0) //inorder traversal through the tree
             {
                 while(currentNode != null)
                 {
@@ -117,10 +154,7 @@ namespace TextJustificationForms
 
                 if (output.Length == length) break;
 
-                if(currentNode == startNode)
-                {
-                    didBeginReporting = true;
-                }
+                didBeginReporting = currentNode == startNode && !didBeginReporting; //begins reporting after first reaching startNode in the traversal
 
                 currentNode = currentNode.RightChild;
             }

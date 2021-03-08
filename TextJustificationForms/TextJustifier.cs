@@ -8,6 +8,13 @@ namespace TextJustificationForms
 {
     public static class TextJustifier
     {
+        /// <summary>
+        /// Justifies text using purely string and StringBuilder
+        /// </summary>
+        /// <param name="text">The text to justify</param>
+        /// <param name="width">The desired width of each line of text</param>
+        /// <param name="maxLastLineSpacePad">The maximum amount of space to pad words on the last line of the text; purely for beauty purposes</param>
+        /// <returns></returns>
         public static string JustifyString(string text, int width, int maxLastLineSpacePad)
         {
             StringBuilder outputBuilder = new StringBuilder();
@@ -52,6 +59,28 @@ namespace TextJustificationForms
             }
 
             return outputBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Justifies text using a fancy Rope implmentation
+        /// </summary>
+        /// <param name="text">The text to justify</param>
+        /// <param name="width">The desired width of each line of text</param>
+        /// <param name="maxLastLineSpacePad">The maximum amount of space to pad words on the last line of the text; purely for beauty purposes</param>
+        /// <returns></returns>
+        public static string JustifyRope(string text, int width, int maxLastLineSpacePad)
+        {
+            var rope = new Rope();
+
+            int currentIndexInText = 0;
+            while(currentIndexInText < text.Length)
+            {
+                int nextSpaceIndex = text.Substring(currentIndexInText).IndexOf(' ');
+                rope.Append(text.Substring(currentIndexInText, nextSpaceIndex));
+                currentIndexInText = nextSpaceIndex + 1;
+            }
+
+            return rope.ReportAll();
         }
     }
 }

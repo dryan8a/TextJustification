@@ -13,21 +13,24 @@ namespace TextJustificationForms
     public partial class Form1 : Form
     {
         const int maxLastLineSpacePad = 2;
+        bool justifiesWithRopes => JustifyMethodCheckBox.Checked;
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void richTextBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             OutputText.Clear();
-            string justifiedText = TextJustifier.JustifyString(InputText.Text,(int)WidthBox.Value,maxLastLineSpacePad);
-            OutputText.Text = justifiedText;
+            
+            if(justifiesWithRopes)
+            {
+                OutputText.Text = TextJustifier.JustifyRope(InputText.Text, (int)WidthBox.Value, maxLastLineSpacePad);
+            }
+            else
+            {
+                OutputText.Text = TextJustifier.JustifyString(InputText.Text, (int)WidthBox.Value, maxLastLineSpacePad);
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)

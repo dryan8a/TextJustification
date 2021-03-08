@@ -33,6 +33,7 @@ namespace TextJustificationForms
             this.button1 = new System.Windows.Forms.Button();
             this.WidthBox = new System.Windows.Forms.NumericUpDown();
             this.OutputText = new System.Windows.Forms.RichTextBox();
+            this.JustifyMethodCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.WidthBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -43,7 +44,6 @@ namespace TextJustificationForms
             this.InputText.Size = new System.Drawing.Size(387, 401);
             this.InputText.TabIndex = 1;
             this.InputText.Text = "";
-            this.InputText.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
             // 
             // button1
             // 
@@ -70,11 +70,22 @@ namespace TextJustificationForms
             this.OutputText.TabIndex = 4;
             this.OutputText.Text = "";
             // 
+            // JustifyMethodCheckBox
+            // 
+            this.JustifyMethodCheckBox.AutoSize = true;
+            this.JustifyMethodCheckBox.Location = new System.Drawing.Point(421, 419);
+            this.JustifyMethodCheckBox.Name = "JustifyMethodCheckBox";
+            this.JustifyMethodCheckBox.Size = new System.Drawing.Size(186, 17);
+            this.JustifyMethodCheckBox.TabIndex = 5;
+            this.JustifyMethodCheckBox.Text = "Justify with Rope Implementation?";
+            this.JustifyMethodCheckBox.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.JustifyMethodCheckBox);
             this.Controls.Add(this.OutputText);
             this.Controls.Add(this.WidthBox);
             this.Controls.Add(this.button1);
@@ -84,6 +95,7 @@ namespace TextJustificationForms
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.WidthBox)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -92,6 +104,7 @@ namespace TextJustificationForms
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.RichTextBox OutputText;
         public System.Windows.Forms.NumericUpDown WidthBox;
+        private System.Windows.Forms.CheckBox JustifyMethodCheckBox;
     }
 }
 
