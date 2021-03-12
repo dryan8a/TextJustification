@@ -239,13 +239,10 @@ namespace TextJustificationForms
             Rope newSplitRope = null;
             if (indexInNode != 0) //splits the split node if the split includes only part of the node's string
             {
-                string left = node.StrFrag.Substring(0, indexInNode + 1);
-                string right = node.StrFrag.Substring(indexInNode + 1);
-                node.LeftChild = new Node(left.Length,left);
-                node.LeftChild.Parent = node;
-                node.StrFrag = "";
+                string left = node.StrFrag.Substring(0, indexInNode);
+                string right = node.StrFrag.Substring(indexInNode);
                 node.Weight = left.Length;
-                node.IsLeafNode = false;
+                node.StrFrag = left;
 
                 newSplitRope = new Rope(new Node(right.Length, right));
             }
@@ -269,23 +266,18 @@ namespace TextJustificationForms
                     node.RightChild = null;
                 }
 
-                if (node.LeftChild == null ^ node.RightChild == null) //removes unnecessary parent nodes (ones that only contain one subtree)
+                if ((node.LeftChild == null ^ node.RightChild == null) && node.Parent != null) //removes unnecessary parent nodes (ones that only contain one subtree)
                 {
-                    if(node.Parent != null)
+                    ChangeBasedOnSide(node, node.LeftChild != null ? node.LeftChild : node.RightChild);
+                    if (node.LeftChild != null)
                     {
-                        ChangeBasedOnSide(node, node.LeftChild != null ? node.LeftChild : node.RightChild);
-                        if (node.LeftChild != null)
-                        {
-                            node = node.LeftChild;
-                        }
-                        else
-                        {
-                            node = node.RightChild;
-                        }
+                        node.LeftChild.Parent = node.Parent;
+                        node = node.LeftChild;
                     }
                     else
                     {
-                        rope.Head = node.LeftChild != null ? node.LeftChild : node.RightChild;
+                        node.RightChild.Parent = node.Parent;
+                        node = node.RightChild;
                     }
                 }
 
@@ -304,6 +296,12 @@ namespace TextJustificationForms
 
                 previousNode = node;
                 node = node.Parent;
+            }
+
+            if (rope.Head.LeftChild == null ^ rope.Head.RightChild == null)
+            {
+                rope.Head = rope.Head.LeftChild != null ? rope.Head.LeftChild : rope.Head.RightChild;
+                rope.Head.Parent = null;
             }
 
             return (rope, newSplitRope);

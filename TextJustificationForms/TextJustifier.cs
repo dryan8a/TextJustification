@@ -71,18 +71,18 @@ namespace TextJustificationForms
         public static string JustifyRope(string text, int width, int maxLastLineSpacePad)
         {
             var rope = new Rope();
-            var words = text.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries); //gets every word in the text
+            var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries); //gets every word in the text
+            rope.Append(text.Replace(" ", ""));
 
             var lineLengths = new List<int>() { 0 };
             var wordsInLine = new List<int>() { 0 };
             foreach(var word in words) 
             {
-                if(lineLengths[lineLengths.Count - 1] + word.Length > width || word[0] == '\n')
+                if(lineLengths[lineLengths.Count - 1] + wordsInLine[wordsInLine.Count - 1] + word.Length > width || word[0] == '\n') //if the current line (and expected spaces) is too large when the next word is added or the word has a user inserted new line
                 { 
                     lineLengths.Add(0);
                     wordsInLine.Add(0);
                 }
-                rope.Append(word);
                 lineLengths[lineLengths.Count - 1] += word.Length;
                 wordsInLine[wordsInLine.Count - 1]++;
             }
@@ -91,22 +91,23 @@ namespace TextJustificationForms
             int currentTextIndex = 0; //current index in the text, helps to determine where to insert spaces
             int currentWordIndexOnLine = 0;
             bool isEndOfParagraph = false; //determines whether the next line begins with a user inserted new line; used to enforce maxLastLineSpacePad
-            foreach(var word in words)
+            for(int i = 0; i < words.Length; i++)
             {
                 if (currentWordIndexOnLine == 0 && rope.Report(currentLineIndex + lineLengths[currentLineIndex], 1) == "\n") //sets isEndOfParagraph
                 {
                     isEndOfParagraph = true;
                 }
 
-                currentTextIndex += word.Length;
+                currentTextIndex += words[i].Length;
 
-                if (currentWordIndexOnLine == lineLengths[currentLineIndex] - 1) //resets to a new line
+                if (currentWordIndexOnLine == wordsInLine[currentLineIndex] - 1) //resets to a new line
                 {
                     currentLineIndex++;
                     currentWordIndexOnLine = 0;
-                    if(!isEndOfParagraph)
+                    if(!isEndOfParagraph && i != words.Length - 1)
                     {
                         rope.Insert("\n", currentTextIndex);
+                        currentTextIndex++;
                     }
                     isEndOfParagraph = false;
                     continue;
@@ -116,6 +117,8 @@ namespace TextJustificationForms
                 spacesAfterWord = spacesAfterWord > maxLastLineSpacePad && (currentLineIndex == lineLengths.Count - 1 || isEndOfParagraph) ? maxLastLineSpacePad : spacesAfterWord; //removes gross over-spacing on the last line before a new line
                 rope.Insert("".PadRight(spacesAfterWord), currentTextIndex); //inserts an amount of spaces after the current word based on spacesAfterWord
 
+                lineLengths[currentLineIndex] += spacesAfterWord;
+                currentTextIndex += spacesAfterWord;
                 currentWordIndexOnLine++;
             }
 
