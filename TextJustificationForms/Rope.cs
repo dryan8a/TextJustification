@@ -125,7 +125,7 @@ namespace TextJustificationForms
         public string Report(int startIndex, int length)
         {
             (Node startNode, int index) = Query(Head, startIndex);
-            StringBuilder output = new StringBuilder(startNode.StrFrag.Substring(index));
+            StringBuilder output = new StringBuilder();
 
             var nodeStack = new Stack<Node>();
             var currentNode = Head;
@@ -140,7 +140,19 @@ namespace TextJustificationForms
 
                 currentNode = nodeStack.Pop();
 
-                if(didBeginReporting && currentNode.IsLeafNode)
+                if (currentNode == startNode && !didBeginReporting) //begins reporting after first reaching startNode in the traversal
+                {
+                    didBeginReporting = true;
+                    if (currentNode.StrFrag.Length - index > length - output.Length)
+                    {
+                        output.Append(currentNode.StrFrag.Substring(index, length - output.Length));
+                    }
+                    else
+                    {
+                        output.Append(currentNode.StrFrag.Substring(index));
+                    }
+                }
+                else if (didBeginReporting && currentNode.IsLeafNode)
                 {
                     if(currentNode.StrFrag.Length > length - output.Length)
                     {
@@ -153,8 +165,6 @@ namespace TextJustificationForms
                 }
 
                 if (output.Length == length) break;
-
-                didBeginReporting = currentNode == startNode && !didBeginReporting; //begins reporting after first reaching startNode in the traversal
 
                 currentNode = currentNode.RightChild;
             }
